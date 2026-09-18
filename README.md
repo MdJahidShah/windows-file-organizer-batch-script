@@ -44,19 +44,19 @@ The script examines each file in the current directory and identifies its extens
 **The files are then moved into their corresponding folders:**
 
 ```bash
-.jpg/
+jpg/
 └── photo.jpg
 
-.pdf/
+pdf/
 └── document.pdf
 
-.mp4/
+mp4/
 └── video.mp4
 
-.zip/
+zip/
 └── archive.zip
 
-.txt/
+txt/
 └── notes.txt
 ```
 
@@ -99,29 +99,33 @@ for %%F in (*) do (
             rem Process only files that have an extension
             if not "%%~xF"=="" (
 
-                rem Create a folder using the file extension
-                if not exist "%%~xF\" (
-                    mkdir "%%~xF" 2>nul
-                )
+                rem Remove the leading dot from the extension
+                for /f "tokens=1 delims=." %%E in ("%%~xF") do (
 
-                rem Check whether the destination file already exists
-                if exist "%%~xF\%%~nxF" (
+                    rem Create extension folder without the dot
+                    if not exist "%%E\" (
+                        mkdir "%%E" 2>nul
+                    )
 
-                    echo [SKIP] "%%~nxF"
-                    echo        Destination already exists.
-                    set /A SKIPPED+=1
+                    rem Check whether the destination file already exists
+                    if exist "%%E\%%~nxF" (
 
-                ) else (
+                        echo [SKIP] "%%~nxF"
+                        echo        Destination already exists.
+                        set /A SKIPPED+=1
 
-                    rem Move the file
-                    move "%%~fF" "%%~xF\" >nul 2>&1
-
-                    if errorlevel 1 (
-                        echo [ERROR] Could not move "%%~nxF"
-                        set /A ERRORS+=1
                     ) else (
-                        echo [MOVED] "%%~nxF" ^> %%~xF\
-                        set /A MOVED+=1
+
+                        rem Move the file
+                        move "%%~fF" "%%E\" >nul 2>&1
+
+                        if errorlevel 1 (
+                            echo [ERROR] Could not move "%%~nxF"
+                            set /A ERRORS+=1
+                        ) else (
+                            echo [MOVED] "%%~nxF" ^> %%E\
+                            set /A MOVED+=1
+                        )
                     )
                 )
             )
